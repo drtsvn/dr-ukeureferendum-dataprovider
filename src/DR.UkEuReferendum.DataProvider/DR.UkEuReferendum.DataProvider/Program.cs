@@ -17,8 +17,7 @@ namespace DR.UkEuReferendum.DataProvider
     {
         static int Main(string[] args)
         {
-            var temp = MainAsync().Result;
-            return temp;
+            return MainAsync().Result;
         }
 
         private static async Task<int> MainAsync()
@@ -54,10 +53,11 @@ namespace DR.UkEuReferendum.DataProvider
             }
             timer.Stop();
 
+
             checks.Add(new Check
             {
                 Name = "GetData",
-                Message = getDataSuccess ? "Fetched data successfully" : "Failed to fetch data",
+                Message = getDataSuccess ? "Fetched data successfully." : "Failed to fetch data. " + ConfigurationManager.AppSettings["Instructions"],
                 ResponseInMilliSeconds = timer.ElapsedMilliseconds,
                 Status = getDataSuccess ? StatusEnum.OK : StatusEnum.ERROR
             });
@@ -85,7 +85,7 @@ namespace DR.UkEuReferendum.DataProvider
                 checks.Add(new Check
                 {
                     Name = "UpdateFirebase",
-                    Message = firebaseSuccess ? "Updated firebase successfully" : "Failed while updating firebase",
+                    Message = firebaseSuccess ? "Updated firebase successfully" : "Failed while updating firebase. " + ConfigurationManager.AppSettings["Instructions"],
                     ResponseInMilliSeconds = timer.ElapsedMilliseconds,
                     Status = firebaseSuccess ? StatusEnum.OK : StatusEnum.ERROR
                 });
@@ -103,7 +103,7 @@ namespace DR.UkEuReferendum.DataProvider
                 return 0;
             }
             
-            Console.WriteLine("Error, check {0} for more info", ConfigurationManager.AppSettings["XmlPath"]);
+            Console.WriteLine("Error, please refer to {0} for more info", ConfigurationManager.AppSettings["XmlUrl"]);
             return -1;
 
         }
