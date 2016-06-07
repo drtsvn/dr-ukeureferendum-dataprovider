@@ -15,12 +15,13 @@ namespace DR.UkEuReferendum.DataProvider
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            MainAsync().Wait();
+            var temp = MainAsync().Result;
+            return temp;
         }
 
-        private static async Task MainAsync()
+        private static async Task<int> MainAsync()
         {
             var ftpHost = ConfigurationManager.AppSettings["FtpHost"];
             var ftpUserName = ConfigurationManager.AppSettings["FtpUserName"];
@@ -92,9 +93,18 @@ namespace DR.UkEuReferendum.DataProvider
             }
 
 #endregion
-
-
+            
             WriteStatusXml(checks);
+
+            var success = checks.All(c => c.Status == StatusEnum.OK);
+            if (success)
+            {
+                Console.WriteLine("Success");
+                return 0;
+            }
+            
+            Console.WriteLine("Error, check {0} for more info", ConfigurationManager.AppSettings["XmlPath"]);
+            return -1;
 
         }
 
