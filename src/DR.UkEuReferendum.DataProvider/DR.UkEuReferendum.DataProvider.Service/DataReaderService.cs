@@ -18,14 +18,12 @@ namespace DR.UkEuReferendum.DataProvider.Service
         private readonly string _ftpHostname;
         private readonly string _ftpUserName;
         private readonly string _ftpPassword;
-        private readonly string _scoreboardPath;
 
         public DataReaderService(string ftpHostname, string ftpUserName, string ftpPassword)
         {
             _ftpHostname = ftpHostname;
             _ftpUserName = ftpUserName;
             _ftpPassword = ftpPassword;
-            _scoreboardPath = string.Format("{0}/RSG", _ftpHostname);
         }
 
         public async Task<Scoreboard> GetLatestScoreBoard()
@@ -55,12 +53,10 @@ namespace DR.UkEuReferendum.DataProvider.Service
         {
 
             var credentials = new NetworkCredential(_ftpUserName, _ftpPassword);
-            var request = (FtpWebRequest)WebRequest.Create(_scoreboardPath);
+            var request = (FtpWebRequest)WebRequest.Create(_ftpHostname);
             request.Method = WebRequestMethods.Ftp.ListDirectory;
             request.Credentials = credentials;
             
-            try 
-            {
                 var response = (FtpWebResponse)(await request.GetResponseAsync());
                 var responseStream = response.GetResponseStream();
                 var reader = new StreamReader(responseStream);
@@ -69,26 +65,16 @@ namespace DR.UkEuReferendum.DataProvider.Service
                 reader.Close();
                 response.Close();
 
-                var latestFileName = files.Split(new[] { "\r\n" }, StringSplitOptions.None).Select(f => f.Replace("RSG/","")).OrderByDescending(f => f).FirstOrDefault();
+                var latestFileName = files.Split(new[] { "\r\n" }, StringSplitOptions.None).Where(f => f.EndsWith("RSG")).OrderByDescending(f => f).FirstOrDefault();
                 return latestFileName;
-            }
-            catch(WebException exception)
-            {
-                //If we cannnot list the scoreboard directory it may simply be because it's not there yet. In this case verify that we have access to the ftp and continue
-                var res = (FtpWebResponse)exception.Response;
-                if (res.StatusCode == FtpStatusCode.ActionNotTakenFileUnavailable && VerifyFtpAccess())
-                {
-                    return "";
-                }
-                throw;
-            }
+
         }
 
         private async Task<ReferendumScoreboard> GetScoreboardData(string fileName)
         {
             var credentials = new NetworkCredential(_ftpUserName, _ftpPassword);
 
-            var request = (FtpWebRequest) WebRequest.Create(string.Format("{0}/{1}", _scoreboardPath, fileName));
+            var request = (FtpWebRequest) WebRequest.Create(string.Format("{0}/{1}", _ftpHostname, fileName));
             request.Credentials = credentials;
             request.Method = WebRequestMethods.Ftp.DownloadFile;
 
@@ -105,23 +91,23 @@ namespace DR.UkEuReferendum.DataProvider.Service
             return scoreboardData;
         }
 
-        private bool VerifyFtpAccess()
-        {
-            var credentials = new NetworkCredential(_ftpUserName, _ftpPassword);
-            var request = (FtpWebRequest)WebRequest.Create(_ftpHostname);
-            request.Method = WebRequestMethods.Ftp.ListDirectory;
-            request.Credentials = credentials;
-            try
-            {
-                var response = (FtpWebResponse)(request.GetResponse());
+        //private bool VerifyFtpAccess()
+        //{
+        //    var credentials = new NetworkCredential(_ftpUserName, _ftpPassword);
+        //    var request = (FtpWebRequest)WebRequest.Create(_ftpHostname);
+        //    request.Method = WebRequestMethods.Ftp.ListDirectory;
+        //    request.Credentials = credentials;
+        //    try
+        //    {
+        //        var response = (FtpWebResponse)(request.GetResponse());
 
-                response.Close();
-                return true;
-            }
-            catch (Exception exception)
-            {
-                return false;
-            }
-        }
+        //        response.Close();
+        //        return true;
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        return false;
+        //    }
+        //}
     }
 }
