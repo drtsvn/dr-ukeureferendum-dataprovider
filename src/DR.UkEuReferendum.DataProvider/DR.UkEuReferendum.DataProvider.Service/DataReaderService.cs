@@ -31,11 +31,27 @@ namespace DR.UkEuReferendum.DataProvider.Service
             var filename = await GetLatestScoreboardFileName();
             if (string.IsNullOrWhiteSpace(filename))
                 return new Scoreboard();
-
-            var latestScoreboardData = await GetScoreboardData(filename);
+            ReferendumScoreboard latestScoreboardData;
+            try
+            {
+                latestScoreboardData = await GetScoreboardData(filename);
+            }
+            catch (Exception exception)
+            {
+                throw new FileLoadException("Failed to load scoreboard file", filename, exception);                
+            }
             var updateIdString = filename.Split('.').FirstOrDefault();
             int updateId;
             Int32.TryParse(updateIdString, out updateId);
+
+            var remainShare = latestScoreboardData.ScoreboardResult.RemainShare.ToString("0.0", CultureInfo.GetCultureInfo("da-DK"));
+            var leaveShare = latestScoreboardData.ScoreboardResult.LeaveShare.ToString("0.0", CultureInfo.GetCultureInfo("da-DK"));
+
+            if (remainShare == "50,0" || leaveShare == "50,0")
+            {
+                remainShare = latestScoreboardData.ScoreboardResult.RemainShare.ToString("0.00", CultureInfo.GetCultureInfo("da-DK"));
+                leaveShare = latestScoreboardData.ScoreboardResult.LeaveShare.ToString("0.00", CultureInfo.GetCultureInfo("da-DK"));
+            }
 
             var scoreboard = new Scoreboard
             {
@@ -43,8 +59,8 @@ namespace DR.UkEuReferendum.DataProvider.Service
                 TotalCounsils = latestScoreboardData.Scoreboard.TotalCounsils,
                 DeclaredCounsils = latestScoreboardData.Scoreboard.DeclaredCounsils,
                 ParCode = string.IsNullOrWhiteSpace(latestScoreboardData.Scoreboard.WinningMoment) ? "" : latestScoreboardData.Scoreboard.ParCode,
-                RemainShare = latestScoreboardData.ScoreboardResult.RemainShare.ToString("0.0", CultureInfo.GetCultureInfo("da-DK")),
-                LeaveShare = latestScoreboardData.ScoreboardResult.LeaveShare.ToString("0.0", CultureInfo.GetCultureInfo("da-DK"))
+                RemainShare = remainShare,
+                LeaveShare = leaveShare
             };
             return scoreboard;
         }
@@ -65,7 +81,7 @@ namespace DR.UkEuReferendum.DataProvider.Service
                 reader.Close();
                 response.Close();
 
-                var latestFileName = files.Split(new[] { "\r\n" }, StringSplitOptions.None).Where(f => f.EndsWith("RSG")).OrderByDescending(f => f).FirstOrDefault();
+                var latestFileName = files.Split(new[] { "\r\n" }, StringSplitOptions.None).Where(f => f.EndsWith(".RSG")).OrderByDescending(f => f).FirstOrDefault();
                 return latestFileName;
 
         }

@@ -17,7 +17,7 @@ namespace DR.UkEuReferendum.DataProvider.Service.Models
 
     public class ScoreboardBasis
     {
-        [XmlElement("total_councils"), DefaultValue(700000000)]
+        [XmlElement("total_councils"), DefaultValue(382)]
         public int TotalCounsils { get; set; }
 
         [XmlElement("declared_councils")]
@@ -40,7 +40,7 @@ namespace DR.UkEuReferendum.DataProvider.Service.Models
             get
             {
                 decimal retval;
-                return !string.IsNullOrWhiteSpace(_remainShare) && decimal.TryParse(_remainShare, NumberStyles.Number, CultureInfo.CreateSpecificCulture("en-GB"), out retval) ? retval : 0.0m;
+                return !string.IsNullOrWhiteSpace(_remainShare) && decimal.TryParse(_remainShare, NumberStyles.Number, CultureInfo.CreateSpecificCulture("en-GB"), out retval) ? retval : 0.00m;
             }
         }
 
@@ -52,7 +52,7 @@ namespace DR.UkEuReferendum.DataProvider.Service.Models
             get
             {
                 decimal retval;
-                return !string.IsNullOrWhiteSpace(_leaveShare) && decimal.TryParse(_leaveShare, NumberStyles.Number, CultureInfo.CreateSpecificCulture("en-GB"), out retval) ? retval : 0.0m;
+                return !string.IsNullOrWhiteSpace(_leaveShare) && decimal.TryParse(_leaveShare, NumberStyles.Number, CultureInfo.CreateSpecificCulture("en-GB"), out retval) ? retval : 0.00m;
             }
         }
     }
